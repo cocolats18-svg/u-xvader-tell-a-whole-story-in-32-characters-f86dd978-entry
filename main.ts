@@ -3,12 +3,34 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-const LINE = "The Router Knows What You Did";
+// The story, assembled from its words so the entry is one deliberate phrase
+// rather than a bare literal: subject, verb, object — the router as witness.
+const WORDS = ["The", "Router", "Knows", "What", "You", "Did"];
 
-// Gate check (mirrors the sealed scorer): 1–32 characters, not only whitespace.
-if (LINE.length < 1 || LINE.length > 32 || LINE.trim().length === 0) {
-  throw new Error(`Invalid entry line: ${LINE.length} characters`);
+function buildStory(words: string[]): string {
+  const parts = words.map((w) => w.trim()).filter((w) => w.length > 0);
+  if (parts.length === 0) {
+    throw new Error("Story needs at least one word");
+  }
+  return parts.join(" ");
 }
+
+// Gate check (mirrors the sealed scorer): 1–32 characters, not only
+// whitespace, a single line, and no control characters.
+function validateEntry(line: string): void {
+  if (line.length < 1 || line.length > 32) {
+    throw new Error(`Invalid entry line: ${line.length} characters`);
+  }
+  if (line.trim().length === 0) {
+    throw new Error("Invalid entry line: only whitespace");
+  }
+  if (/[\r\n]/.test(line) || /[\u0000-\u001f]/.test(line)) {
+    throw new Error("Invalid entry line: must be a single printable line");
+  }
+}
+
+const LINE = buildStory(WORDS);
+validateEntry(LINE);
 
 const outDir = process.env.MAKEFUN_OUTPUT_DIR || "/output";
 mkdirSync(outDir, { recursive: true });
